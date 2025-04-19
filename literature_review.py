@@ -24,7 +24,7 @@ from langchain_core.messages import SystemMessage
 config = RunnableConfig(recursion_limit=50)
 
 # Define API key for Gemini models
-os.environ["GEMINI_API_KEY"] = "AIzaSyDIc_WwIPtqT55NZqnxOOBWsdE4hD-Symw"
+os.environ["GEMINI_API_KEY"] = 
 
 # Define the state structure
 class State(TypedDict):
@@ -300,7 +300,7 @@ def summarize_papers(papers: List[str]) -> List[Dict]:
     Returns:
         List of dictionaries containing paper ID and summary
     """
-    os.environ["GEMINI_API_KEY"] = "AIzaSyCxr8E4Cad5rLpHqtwqQ0UzCfQAYd13nvs"
+    os.environ["GEMINI_API_KEY"] = 
     print(f"\n[FUNCTION] Executing summarize_papers() with {len(papers)} papers")
     
     if not papers:
@@ -452,7 +452,7 @@ def human_feedback_on_keywords(state: State) -> State:
 # Node: Data Curator (ReactAgent with tools)
 # ---------------------------
 def data_curator(state: State) -> State:
-    os.environ["GEMINI_API_KEY"] = "AIzaSyAAlAIuwTm7eJ9BpzPnZzsd1KzpFLuSUXA"
+    os.environ["GEMINI_API_KEY"] = 
     current_state = dict(state)
     # Create a list of tools
     tools = [
@@ -588,7 +588,7 @@ Based on this state, which ONE tool should I call next?
 # Node: Data Summarizer Node
 # ---------------------------
 def data_summarizer(state: State) -> State:
-    os.environ["GEMINI_API_KEY"] = "AIzaSyBFjWXxeeMLFKtlueKC7fMYJE8W9NeuDlo"
+    os.environ["GEMINI_API_KEY"] = 
     current_state = dict(state)
     summaries = state.get('summaries', [])
     template = state.get('template',"")
