@@ -24,7 +24,7 @@ from langchain_core.messages import SystemMessage
 config = RunnableConfig(recursion_limit=50)
 
 # Define API key for Gemini models
-os.environ["GEMINI_API_KEY"] = 
+os.environ["GEMINI_API_KEY"] = "AIzaSyDIc_WwIPtqT55NZqnxOOBWsdE4hD-Symw"
 
 # Define the state structure
 class State(TypedDict):
@@ -300,7 +300,7 @@ def summarize_papers(papers: List[str]) -> List[Dict]:
     Returns:
         List of dictionaries containing paper ID and summary
     """
-    os.environ["GEMINI_API_KEY"] = 
+    os.environ["GEMINI_API_KEY"] = "AIzaSyCxr8E4Cad5rLpHqtwqQ0UzCfQAYd13nvs"
     print(f"\n[FUNCTION] Executing summarize_papers() with {len(papers)} papers")
     
     if not papers:
@@ -452,7 +452,7 @@ def human_feedback_on_keywords(state: State) -> State:
 # Node: Data Curator (ReactAgent with tools)
 # ---------------------------
 def data_curator(state: State) -> State:
-    os.environ["GEMINI_API_KEY"] = 
+    os.environ["GEMINI_API_KEY"] = "AIzaSyAAlAIuwTm7eJ9BpzPnZzsd1KzpFLuSUXA"
     current_state = dict(state)
     # Create a list of tools
     tools = [
@@ -478,6 +478,7 @@ IMPORTANT INSTRUCTIONS:
    - When you have papers, rank them (rank_papers) by relevance to the query
    - Finally, summarize the top ranked papers (summarize_papers)
 5. YOU MUST MAKE A TOOL CALL OR RESPOND WITH "COMPLETE" IN YOUR RESPONSE.
+6. DO NOT print or write code that calls tools - use the tools directly through the interface provided.
 
 NEVER call summarize_papers before rank_papers. Always ensure papers are properly ranked first.
 
@@ -505,9 +506,9 @@ If you think the current information is sufficient for the literature review, re
 Query: {state.get('query', '')}
 Template: {state.get('template', '')}
 Keywords: {state.get('keywords', [])}
-Papers: {(state.get('papers', []))}
+Papers: {len(state.get('papers', []))} papers retrieved
 Ranked Papers: {len(state.get('ranked_papers', []))} papers ranked 
-Summaries: {len(state.get('summaries', []))} paper summaries
+Summaries: {(state.get('summaries', []))}
 Feedback from data_summarizer: {state.get('feedback', '')}
 
 Based on this state, which ONE tool should I call next?
@@ -516,6 +517,7 @@ Based on this state, which ONE tool should I call next?
         message += f"\nPrevious responses: {previous_responses}"
     if previous_tool_calls:
         message += f"\nPrevious tool calls: {previous_tool_calls}"
+    
     # Create the agent using llm.bind_tools approach
     llm_with_tools = llm.bind_tools(tools)
     
@@ -532,9 +534,44 @@ Based on this state, which ONE tool should I call next?
     
     updated_state = current_state.copy()
     updated_state["previous_responses"] = [response.content]
-    updated_state["previous_tool_calls"] = getattr(response, "tool_calls", [])
-    # Process tool calls from the response - only expecting one call
+    
+    # Process tool calls from the response
     tool_calls = getattr(response, "tool_calls", [])
+    
+    # If tool_calls is empty but response contains a pattern that looks like it's trying to call a tool,
+    # let's try to parse it manually
+    if not tool_calls and ("search_papers" in response.content or "rank_papers" in response.content or 
+                          "summarize_papers" in response.content or "find_similar_papers" in response.content):
+        print("Tool call was attempted but not properly structured. Trying to identify the intended tool...")
+        
+        # Identify which tool was likely intended
+        tool_name = None
+        tool_args = {}
+        
+        if "search_papers" in response.content:
+            tool_name = "search_papers"
+            tool_args = {"keywords": state.get('keywords', [])}
+        elif "rank_papers" in response.content:
+            tool_name = "rank_papers"
+            tool_args = {"papers": state.get('papers', []), "query": state.get('query', '')}
+        elif "summarize_papers" in response.content:
+            papers_to_summarize = state.get('ranked_papers', []) if state.get('ranked_papers', []) else state.get('papers', [])
+            tool_name = "summarize_papers"
+            tool_args = {"papers": papers_to_summarize[:15]}  # Limit to top 15 papers
+        elif "find_similar_papers" in response.content:
+            # Identify a paper name if possible
+            papers = state.get('papers', [])
+            if papers:
+                paper_name = papers[0].split(" ", 1)[0]  # Get first paper ID
+                tool_name = "find_similar_papers"
+                tool_args = {"paper_name": paper_name}
+        
+        if tool_name:
+            print(f"Detected intent to use {tool_name} with args: {tool_args}")
+            tool_calls = [{"name": tool_name, "args": tool_args}]
+    
+    updated_state["previous_tool_calls"] = tool_calls
+    
     if tool_calls:
         # Process only the first tool call
         tool_call = tool_calls[0]
@@ -579,6 +616,7 @@ Based on this state, which ONE tool should I call next?
         print("\n=== Data Collection Complete (LLM signaled completion) ===\n")
         updated_state["next_step"] = "data_summarizer"
         return updated_state
+    
     updated_state["feedback"] = ""
     updated_state["next_step"] = "data_curator"
     
@@ -588,7 +626,7 @@ Based on this state, which ONE tool should I call next?
 # Node: Data Summarizer Node
 # ---------------------------
 def data_summarizer(state: State) -> State:
-    os.environ["GEMINI_API_KEY"] = 
+    os.environ["GEMINI_API_KEY"] = "AIzaSyBFjWXxeeMLFKtlueKC7fMYJE8W9NeuDlo"
     current_state = dict(state)
     summaries = state.get('summaries', [])
     template = state.get('template',"")
@@ -777,4 +815,4 @@ def run_leaderboard_benchmark(query):
 
 # Example benchmark execution
 if __name__ == "__main__":
-    benchmark_result = run_leaderboard_benchmark("Generate a literature review on question answering datasets on research papers")
+    benchmark_result = run_leaderboard_benchmark("Ion-Specific Effects in the Colloid-Colloid or Protein-Protein Potential of Mean Force: Role of Salt-Macroion van der Waals Interactions")
