@@ -15,21 +15,104 @@ This project implements a sophisticated agent-based workflow that:
 
 ## 🏗️ Architecture
 
-The system uses a **LangGraph state machine** with the following nodes:
+The system uses a **LangGraph state machine** with sophisticated multi-agent workflow for automated literature review generation.
 
-```
-Template Generator → Keyword Suggestion → Human Feedback → Data Curator ⟷ Data Summarizer → Review Generator → Review Evaluator
-```
+![Literature Review Agent Workflow](image.png)
 
 ### Agent Workflow
 
-1. **Template Generator**: Creates research questions based on the user's query
-2. **Keyword Suggestion**: AI-powered keyword generation with human refinement
-3. **Human Feedback**: Interactive keyword editing and approval
-4. **Data Curator**: Multi-tool agent that searches, ranks, and summarizes papers
-5. **Data Summarizer**: Synthesizes paper summaries into coherent insights
-6. **Review Generator**: Creates the final literature review section
-7. **Review Evaluator**: Quality assessment with iterative improvement
+The workflow consists of the following key phases:
+
+#### 1. **Template Generator** 
+- **Purpose**: Creates structured research questions based on user's query
+- **Input**: User research query
+- **Output**: 7-10 specific research questions to guide the literature review
+
+#### 2. **Keyword Management Pipeline**
+- **Suggest Keywords**: AI-powered keyword generation using Gemini models
+- **Human Feedback**: Interactive keyword editing and approval process
+  - Add new keywords (`+keyword1,keyword2,...`)
+  - Remove keywords (`-1,3,5` for positions)
+  - Replace all (`=keyword1,keyword2,...`)
+
+#### 3. **Data Curator (Multi-Tool Agent)**
+The Data Curator is a sophisticated ReactAgent with access to multiple tools:
+
+- **🔍 Search Papers**: FAISS-based semantic search using keywords
+- **📊 Rank Papers**: AI-powered relevance ranking based on query
+- **🔗 Find Similar Papers**: Discover papers similar to specific references
+- **📝 Summarize Papers**: Generate detailed paper summaries
+
+**Tool Execution Flow**:
+```
+Keywords → Search Papers → Rank by Relevance → Summarize Content
+```
+
+#### 4. **Data Summarizer**
+- **Purpose**: Synthesizes individual paper summaries into coherent insights
+- **Process**: Answers 3-5 key questions using aggregated paper content
+- **Quality Check**: Returns "NO SUFFICIENT INFORMATION" if data is inadequate
+
+#### 5. **Review Generator** 
+- **Purpose**: Creates the final "Related Work" section
+- **Input**: Synthesized data summary and original query
+- **Output**: Academic-standard literature review with proper structure
+
+#### 6. **Review Evaluator (Quality Control)**
+- **Purpose**: Iterative quality assessment and improvement
+- **Criteria**: Comprehensiveness, structure, critical analysis, coherence, academic style
+- **Actions**: 
+  - ✅ **ACCEPTABLE**: Route to END
+  - ❌ **NEEDS IMPROVEMENT**: Route back to Data Summarizer with feedback
+
+### Key Features of the Architecture
+
+- **🔄 Iterative Refinement**: Feedback loops ensure quality improvement
+- **🤖 Human-in-the-Loop**: Interactive keyword refinement process
+- **⚡ Parallel Processing**: Efficient paper retrieval and processing
+- **🛡️ Error Handling**: Graceful degradation when papers are inaccessible
+- **📈 Scalability**: Configurable limits for large-scale processing
+
+### Workflow Details
+
+#### **Sequential Processing Flow**
+1. **START** → **Template Generator** → **Data Curator**
+2. **Data Curator** ↔ **Data Summarizer** (bidirectional feedback loop)
+3. **Data Summarizer** → **Review Generator** → **END**
+
+#### **Data Curator Internal Operations**
+The Data Curator operates as a multi-tool agent with the following capabilities:
+
+1. **Suggest Keywords**: 
+   - Seeks human feedback on identified keywords
+   - Allows interactive refinement and approval
+
+2. **Search Agent**: 
+   - Retrieves relevant arXiv papers from data repository
+   - Uses FAISS vector search for semantic matching
+
+3. **Recommend/Find Similar Papers**:
+   - Discovers papers similar to found references
+   - Expands the literature base through citation networks
+
+4. **Rank Papers**: 
+   - Orders papers based on relevance to query
+   - Uses AI-powered ranking algorithms
+
+5. **Summarize Paper Content**:
+   - Generates detailed abstracts and key findings
+   - Extracts methodology, results, and significance
+
+6. **RAG Search**: 
+   - Retrieval-Augmented Generation over papers
+   - Enables contextual information extraction
+
+#### **Quality Assurance Loop**
+The system includes a sophisticated feedback mechanism:
+- **Data Summarizer** evaluates information sufficiency
+- **Review Generator** creates academic-standard output
+- **Bidirectional communication** allows for iterative improvement
+- **Human oversight** ensures quality and relevance
 
 ## 🔧 Prerequisites
 
